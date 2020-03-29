@@ -22,7 +22,22 @@ public class SpringStorageAppApplication {
     }
 
     /**
-     * Запрос на создание двух таблиц.
+     * Запрос на удаление двух таблиц Box и Item.
+     */
+    private static final String DROP_ITEM_QUERY;
+
+    static {
+        DROP_ITEM_QUERY = "DROP TABLE IF EXISTS ITEM";
+    }
+
+    private static final String DROP_BOX_QUERY;
+
+    static {
+        DROP_BOX_QUERY = "DROP TABLE IF EXISTS BOX";
+    }
+
+    /**
+     * Запрос на создание двух таблиц Box и Item.
      */
     private static final String CREATE_BOX_QUERY;
 
@@ -36,20 +51,9 @@ public class SpringStorageAppApplication {
         CREATE_ITEM_QUERY = "CREATE TABLE IF NOT EXISTS ITEM (id INTEGER PRIMARY KEY, contained_in INTEGER REFERENCES box(id), color VARCHAR(100))";
     }
 
-    private static final String DROP_ITEM_QUERY;
-
-    static {
-        DROP_ITEM_QUERY = "DROP TABLE IF EXISTS ITEM";
-    }
-
-    private static final String DROP_BOX_QUERY;
-
-    static {
-        DROP_BOX_QUERY = "DROP TABLE IF EXISTS BOX";
-    }
-
-
-    //Запуск метода для распарсивания Storage.xml сразу после старта программы.
+    /**
+     * Запуск метода для распарсивания Storage.xml сразу после старта программы.
+     */
     @EventListener(ApplicationReadyEvent.class)
     public void doParsingFileAfterStartup() {
         System.out.println("Hello, I'm parser. I have just started up");
@@ -73,18 +77,22 @@ public class SpringStorageAppApplication {
 
         try (Connection connection = DriverManager.getConnection("jdbc:h2:tcp://localhost/~/test", "root", "")) {
 
-
             try (Statement dataQuery = connection.createStatement()) {
+
+                //Запросы для того, чтобы пересоздавать таблицы, если они остались в БД
                 dataQuery.execute(DROP_BOX_QUERY);
                 dataQuery.execute(DROP_ITEM_QUERY);
                 dataQuery.execute(CREATE_BOX_QUERY);
                 dataQuery.execute(CREATE_ITEM_QUERY);
 
+                //Заполняем таблицу Box данными.
                 List<Box> boxes = xmlParser.getBoxes();
                 for (Box box : boxes) {
 
                     dataQuery.executeUpdate("INSERT INTO BOX (id, contained_in) VALUES (" + box.getId() + ", " + box.getParentId() + ");");
                 }
+
+                //Заполняем таблицу Item данными.
                 List<Item> items = xmlParser.getItems();
                 for (Item item : items) {
                     dataQuery.executeUpdate("INSERT INTO ITEM (id, contained_in, color) VALUES (" + item.getId() + ","
@@ -92,6 +100,7 @@ public class SpringStorageAppApplication {
                 }
             }
 
+            //Проверяем какие данные записались в таблицу Box, выводим эти данные в консоль
             try (PreparedStatement query =
                          connection.prepareStatement("SELECT * FROM BOX")) {
                 ResultSet rs = query.executeQuery();
@@ -104,6 +113,8 @@ public class SpringStorageAppApplication {
                 }
                 rs.close();
             }
+
+            //Проверяем какие данные записались в таблицу Item, выводим эти данные в консоль
             try (PreparedStatement query =
                          connection.prepareStatement("SELECT * FROM ITEM")) {
                 ResultSet rs = query.executeQuery();
@@ -116,14 +127,11 @@ public class SpringStorageAppApplication {
                     );
                 }
 
-
                 rs.close();
             }
         } catch (SQLException ex) {
             System.out.println("Database connection failure: "
                     + ex.getMessage());
         }
-
     }
-
 }

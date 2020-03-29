@@ -9,13 +9,18 @@ import ru.pimalex1978.springstorageapp.repo.ItemRepo;
 import ru.pimalex1978.springstorageapp.entity.Box;
 import ru.pimalex1978.springstorageapp.entity.Item;
 
+/**
+ * Используя страницу браузера, обращаемся по этому адресу http://localhost:8080/
+ * и видим три поля для вывода информации хранящейся в БД
+ */
+
 @Controller
 public class MainController {
     @Autowired
-    BoxRepo boxRepo;
+    private BoxRepo boxRepo;
 
     @Autowired
-    ItemRepo itemRepo;
+    private ItemRepo itemRepo;
 
 
     //Вывел на экран список из трёх запросов к Хранилищу
@@ -32,6 +37,7 @@ public class MainController {
         return html;
     }
 
+    //Вывел список всех сущностей хранящихся в Хранилище Storage
     @ResponseBody
     @RequestMapping("/showAllStorage")
     public String showAllStorage() {
@@ -53,6 +59,7 @@ public class MainController {
         return html.toString();
     }
 
+    //Вывел список всех Box хранящихся в Хранилище Storage
     @ResponseBody
     @RequestMapping("/showAllBoxes")
     public String showAllBoxes() {
@@ -66,6 +73,7 @@ public class MainController {
         return html.toString();
     }
 
+    //Вывел список всех Item хранящихся в Хранилище Storage
     @ResponseBody
     @RequestMapping("/showAllItems")
     public String showAllItems() {
